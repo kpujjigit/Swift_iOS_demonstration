@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct CheckoutView: View {
+    @EnvironmentObject private var cartManager: CartManager
+    @State private var showAlert = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Shipping")
@@ -17,5 +20,18 @@ struct CheckoutView: View {
         }
         .padding()
         .navigationTitle("Review Order")
+        .onChange(of: cartManager.lastError) { error in
+            showAlert = error != nil
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Error"), message: Text("Purchase can't be completed."), dismissButton: .default(Text("OK")))
+        }
+        .overlay(
+            Group {
+                if cartManager.isProcessing {
+                    ProgressView("Processing...")
+                }
+            }
+        )
     }
 }

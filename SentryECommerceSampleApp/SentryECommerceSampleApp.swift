@@ -5,7 +5,8 @@ import Sentry
 struct SentryECommerceSampleApp: App {
     init() {
         SentrySDK.start { options in
-            options.dsn = "<INSERT_DSN_HERE>"
+            let env = ProcessInfo.processInfo.environment
+            options.dsn = env["SENTRY_DSN"] ?? "<INSERT_DSN_HERE>"
             options.tracesSampleRate = 1.0
             options.profilesSampleRate = 1.0
             options.enableAutoSessionTracking = true
