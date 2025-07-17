@@ -1,8 +1,10 @@
 import SwiftUI
 import Sentry
+import Foundation
 
 struct CatalogView: View {
     @State private var products: [Product] = []
+    @State private var isLoading = false
     @EnvironmentObject private var cartManager: CartManager
 
     var body: some View {
@@ -19,6 +21,13 @@ struct CatalogView: View {
                     }
                 }
             }
+            .overlay(
+                Group {
+                    if isLoading {
+                        ProgressView("Loading...")
+                    }
+                }
+            )
             .navigationTitle("Catalog")
             .toolbar {
                 NavigationLink(destination: CartView()) {
@@ -31,10 +40,14 @@ struct CatalogView: View {
 
     private func loadCatalog() {
         let span = SentrySDK.startTransaction(name: "Load Catalog", operation: "catalog.load")
-        // intentionally slow load
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.products = Product.sampleCatalog
-            span.finish()
+        isLoading = true
+        DispatchQueue.global().async {
+            _ = recursiveSlowWork(43)
+            DispatchQueue.main.async {
+                self.products = Product.sampleCatalog
+                self.isLoading = false
+                span.finish()
+            }
         }
     }
 }
